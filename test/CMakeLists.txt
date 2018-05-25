@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 2.8)
+project(GameOfLifeTest)
+
+file(GLOB_RECURSE sources "*.cpp")
+file(GLOB_RECURSE headers "*.h")
+
+add_executable(${PROJECT_NAME} ${sources} ${headers})
