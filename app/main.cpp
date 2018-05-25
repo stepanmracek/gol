@@ -1,27 +1,14 @@
 #include <iostream>
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
 
-#include "board.h"
+#include "qmlboard.h"
 
-int main() {
-    Board b(20, 20, {2,3}, {3});
-    /*b.setValue(3, 2, 1);
-    b.setValue(4, 3, 1);
-    b.setValue(4, 4, 1);
-    b.setValue(3, 4, 1);
-    b.setValue(2, 4, 1);*/
+int main(int argc, char *argv[]) {
+    QGuiApplication app(argc, argv);
+    qmlRegisterType<QmlBoard>("GameOfLife", 1, 0, "QmlBoard");
+    QQmlApplicationEngine engine;
+    engine.load(QUrl(QStringLiteral("qrc:/ui/main.qml")));
 
-    for (int i = 0; i < 150; i++) {
-        b.random();
-    }
-
-    std::cout << b;
-    std::cout << "----------" << std::endl;
-    for (int i = 0; i < 200000; i++) {
-        std::string line;
-        std::getline(std::cin, line);
-        b.step();
-        std::cout << b;
-        std::cout << "----------" << std::endl;
-    }
-    return 0;
+    return app.exec();
 }
