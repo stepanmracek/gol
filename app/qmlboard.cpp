@@ -5,12 +5,13 @@
 #include <QMouseEvent>
 #include <QHoverEvent>
 
-QmlBoard::QmlBoard(QQuickItem *parent) : QQuickPaintedItem(parent), board(50, 50, {2,3}, {3}), lastPos(INT_MAX, INT_MAX) {
+QmlBoard::QmlBoard(QQuickItem *parent) : QQuickPaintedItem(parent), board(InfiniteBoard({2,3}, {3})), lastPos(INT_MAX, INT_MAX) {
     setAcceptedMouseButtons(Qt::LeftButton);
 
     /*for (int i = 0; i < board.getWidth() * board.getHeight() * 0.2; i++) {
         board.random();
     }*/
+
 }
 
 void QmlBoard::paint(QPainter *painter) {

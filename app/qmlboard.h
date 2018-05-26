@@ -3,7 +3,7 @@
 #include <QQuickPaintedItem>
 #include <QPoint>
 
-#include "board.h"
+#include "infiniteboard.h"
 
 class QmlBoard : public QQuickPaintedItem
 {
@@ -21,6 +21,6 @@ private:
     virtual void mouseReleaseEvent(QMouseEvent *event);
     virtual void mouseMoveEvent(QMouseEvent *event);
 
-    Board board;
+    InfiniteBoard board;
     QPoint lastPos;
 };

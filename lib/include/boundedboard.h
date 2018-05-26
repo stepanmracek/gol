@@ -4,10 +4,12 @@
 #include <set>
 #include <ostream>
 
-class Board {
+#include "iboard.h"
+
+class BoundedBoard: public IBoard {
 public:
-    Board(int width, int height, std::set<int> stay, std::set<int> born);
-    virtual ~Board();
+    BoundedBoard(int width, int height, std::set<int> stay, std::set<int> born);
+    virtual ~BoundedBoard();
 
     void random();
     void step();
@@ -30,8 +32,4 @@ private:
 
     int width;
     int height;
-    std::set<int> stay;
-    std::set<int> born;
 };
-
-std::ostream &operator<<(std::ostream &stream, const Board &board);
