@@ -8,7 +8,7 @@ Just another implementation of well-known zero player game called [Game of Life]
 
  - Infinite - [functional approach](https://en.wikipedia.org/wiki/Functional_programming) with unlimited game field size build upon `std::set` (elegant, yet not very efficient)
  - Infinite2 - another functional approach build upon `std::unordered_set`
- - Bouned - naive implementation. Very fast but with bounded game field
+ - Bounded - naive implementation. Very fast but with bounded game field
 
 ![Benchmark](benchmark2.png)
 
