@@ -2,6 +2,7 @@
 
 Just another implementation of well-known zero player game called [Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)
 
+![Screenshot](screenshot.png)
 
 # Benchmarks of implementations
 
