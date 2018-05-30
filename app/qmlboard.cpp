@@ -16,8 +16,8 @@ QmlBoard::QmlBoard(QQuickItem *parent):
     viewCenter(10.5, 10.5)
 {
     //board.reset(new InfiniteBoard({2, 3}, {3}));
-    board.reset(new InfiniteBoard2({2, 3}, {3}));
-    //board.reset(new BoundedBoard(1024, 1024, {2, 3}, {3}));
+    //board.reset(new InfiniteBoard2({2, 3}, {3}));
+    board.reset(new BoundedBoard(250, 250, {2, 3}, {3}));
     setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
