@@ -5,4 +5,5 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_subdirectory(app)
 add_subdirectory(lib)
-add_subdirectory(test)
+add_subdirectory(googletest)
+add_subdirectory(tests)

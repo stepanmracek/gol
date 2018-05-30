@@ -1,9 +1,11 @@
 #include "infiniteboard.h"
 
 #include <algorithm>
+#include <vector>
 
-int InfiniteBoard::applyRule(int value, int neigbourCount) const {
-    return value ? stay.find(neigbourCount) != stay.end() : born.find(neigbourCount) != born.end();
+int InfiniteBoard::applyRule(int value, const Cells &neigbours) const {
+    size_t count = neigbours.size();
+    return value ? stay.find(count) != stay.end() : born.find(count) != born.end();
 }
 
 InfiniteBoard::Cells InfiniteBoard::getNeighbours(const Cell &cell) const {
@@ -21,11 +23,10 @@ InfiniteBoard::Cells InfiniteBoard::getAliveNeighbours(const Cell &cell) const {
 
 InfiniteBoard::Cells InfiniteBoard::getDeadCells() const {
     Cells allNeighbours;
-    for (const Cell &c : cells) {
-        for (const Cell &n : getNeighbours(c)) {
-            allNeighbours.insert(n);
-        }
-    }
+    std::for_each(cells.begin(), cells.end(), [this, &allNeighbours](const Cell &c) {
+        Cells neighbours = getNeighbours(c);
+        allNeighbours.insert(neighbours.begin(), neighbours.end());
+    });
     Cells result;
     std::set_difference(allNeighbours.begin(), allNeighbours.end(), cells.begin(), cells.end(), std::inserter(result, result.end()));
     return result;
@@ -33,25 +34,15 @@ InfiniteBoard::Cells InfiniteBoard::getDeadCells() const {
 
 InfiniteBoard::Cells InfiniteBoard::shouldSurvive() const {
     Cells result;
-    for (const Cell &cell: cells) {
-        if (applyRule(1, getAliveNeighbours(cell).size()))
-            result.insert(cell);
-    }
+    std::copy_if(cells.begin(), cells.end(), std::inserter(result, result.end()), [this](const Cell &c) { return applyRule(1, getAliveNeighbours(c)); });
     return result;
 }
 
 InfiniteBoard::Cells InfiniteBoard::shouldBorn() const {
     Cells result;
     Cells deadCells = getDeadCells();
-    for (const Cell &c : deadCells) {
-        if (applyRule(0, getAliveNeighbours(c).size()))
-            result.insert(c);
-    }
+    std::copy_if(deadCells.begin(), deadCells.end(), std::inserter(result, result.end()), [this](const Cell &c) { return applyRule(0, getAliveNeighbours(c)); });
     return result;
-}
-
-void InfiniteBoard::random() {
-
 }
 
 void InfiniteBoard::step() {
@@ -73,10 +64,10 @@ void InfiniteBoard::setValue(int x, int y, int value) {
     }
 }
 
-int InfiniteBoard::getWidth() const {
-    return 500;
-}
-
-int InfiniteBoard::getHeight() const {
-    return 500;
+InfiniteBoard::Cells InfiniteBoard::getCellsInArea(int x, int y, int width, int height) const {
+    Cells result;
+    std::copy_if(cells.begin(), cells.end(), std::inserter(result, result.end()), [&](const Cell &c) {
+        return c.first >= x && c.second >= y && c.first <= x + width && c.second <= y + height;
+    });
+    return result;
 }

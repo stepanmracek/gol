@@ -3,66 +3,124 @@
 #include <iostream>
 #include <QPainter>
 #include <QMouseEvent>
-#include <QHoverEvent>
+#include <QWheelEvent>
+#include <QTime>
 
-QmlBoard::QmlBoard(QQuickItem *parent) : QQuickPaintedItem(parent), board(InfiniteBoard({2,3}, {3})), lastPos(INT_MAX, INT_MAX) {
-    setAcceptedMouseButtons(Qt::LeftButton);
+#include "infiniteboard.h"
+#include "infiniteboard2.h"
+#include "boundedboard.h"
 
-    /*for (int i = 0; i < board.getWidth() * board.getHeight() * 0.2; i++) {
-        board.random();
-    }*/
+QmlBoard::QmlBoard(QQuickItem *parent):
+    QQuickPaintedItem(parent),
+    viewZoom(20),
+    viewCenter(10.5, 10.5)
+{
+    //board.reset(new InfiniteBoard({2, 3}, {3}));
+    board.reset(new InfiniteBoard2({2, 3}, {3}));
+    //board.reset(new BoundedBoard(1024, 1024, {2, 3}, {3}));
+    setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
+}
 
+QPointF QmlBoard::viewTopLeft() {
+    auto br = boundingRect();
+    return QPointF(viewCenter.x() - br.width() / viewZoom / 2, viewCenter.y() - br.height() / viewZoom / 2);
+}
+
+QPointF QmlBoard::viewBottomRight() {
+    auto br = boundingRect();
+    return QPointF(viewCenter.x() + br.width() / viewZoom / 2, viewCenter.y() + br.height() / viewZoom / 2);
 }
 
 void QmlBoard::paint(QPainter *painter) {
-    int boardWidth = board.getWidth();
-    int boardHeight = board.getHeight();
+    QPointF topLeft = viewTopLeft();
+    QPointF bottomRight = viewBottomRight();
     painter->setPen(Qt::black);
-    qreal cellWidth = boundingRect().width() / boardWidth;
-    qreal cellHeight = boundingRect().height() / boardHeight;
-    for (int y = 0; y < boardWidth; y++) {
-        for (int x = 0; x < boardHeight; x++) {
-            if (board.getValue(x, y)) {
-                painter->fillRect(QRectF(x * cellWidth, y * cellHeight, cellWidth, cellHeight), Qt::SolidPattern);
-            }
-        }
+    IBoard::Cells cells = board->getCellsInArea(topLeft.x(), topLeft.y(),
+                                               bottomRight.x() - topLeft.x(),
+                                               bottomRight.y() - topLeft.y());
+    for (const IBoard::Cell & cell : cells) {
+        painter->fillRect(QRectF((cell.first - topLeft.x()) * viewZoom,
+                                 (cell.second - topLeft.y()) * viewZoom,
+                                 viewZoom, viewZoom), Qt::SolidPattern);
     }
 }
 
-void QmlBoard::step() {
-    board.step();
+int QmlBoard::step() {
+    auto now = QTime::currentTime();
+    board->step();
+    int elapsed = now.elapsed();
+    update();
+    return elapsed;
+}
+
+void QmlBoard::random() {
+    auto tl = viewTopLeft();
+    auto br = viewBottomRight();
+    QRectF area(tl, br);
+    int c = area.width() * area.height() * 0.1;
+    for (int i = 0; i < c; i++) {
+        int x = (rand() % (int)(br.x() - tl.x())) + tl.x();
+        int y = (rand() % (int)(br.y() - tl.y())) + tl.y();
+        board->setValue(x, y, !board->getValue(x, y));
+    }
     update();
 }
 
-
 void QmlBoard::mousePressEvent(QMouseEvent *event) {
-    std::cout << "press " << event->pos().x() << " " << event->pos().y() << std::endl;
-    toggleCell(event);
+    if (event->buttons() & Qt::LeftButton) {
+        toggleCell(true, event);
+    }
+    if (event->buttons() & Qt::RightButton) {
+        pan(true, event);
+    }
 }
 
 void QmlBoard::mouseReleaseEvent(QMouseEvent *event) {
-    std::cout << "release " << event->pos().x() << " " << event->pos().y() << std::endl;
-    lastPos = QPoint(INT_MAX, INT_MAX);
+
 }
 
 void QmlBoard::mouseMoveEvent(QMouseEvent *event) {
-    std::cout << "move " << event->pos().x() << " " << event->pos().y() << std::endl;
-    toggleCell(event);
+    if (event->buttons() & Qt::LeftButton) {
+        toggleCell(false, event);
+    }
+    if (event->buttons() & Qt::RightButton) {
+        pan(false, event);
+    }
 }
 
-void QmlBoard::toggleCell(QMouseEvent *event) {
-    int boardWidth = board.getWidth();
-    int boardHeight = board.getHeight();
-    qreal cellWidth = boundingRect().width() / boardWidth;
-    qreal cellHeight = boundingRect().height() / boardHeight;
-    int x = event->pos().x() / cellWidth;
-    int y = event->pos().y() / cellHeight;
+void QmlBoard::toggleCell(bool first, QMouseEvent *event) {
+    auto topLeft = viewTopLeft();
+    int x = event->pos().x() / viewZoom + topLeft.x();
+    int y = event->pos().y() / viewZoom + topLeft.y();
     QPoint newPos(x, y);
+    static QPoint lastPos(INT_MAX, INT_MAX);
+    static int drawCellValue = 1;
+    if (first) {
+        drawCellValue = !board->getValue(x, y);
+    }
     if (lastPos != newPos) {
         lastPos = newPos;
-        if (x >= 0 && x < boardWidth && y >= 0 && y < boardHeight) {
-            board.setValue(x, y, !board.getValue(x, y));
-            update();
-        }
+        board->setValue(x, y, drawCellValue);
+        update();
     }
+}
+
+void QmlBoard::pan(bool first, QMouseEvent *event) {
+    static QPoint panStart;
+    static QPointF originalViewCenter;
+    if (first) {
+        panStart = event->pos();
+        originalViewCenter = viewCenter;
+    } else {
+        QPoint delta = event->pos() - panStart;
+        viewCenter = originalViewCenter - delta/viewZoom;
+        update();
+    }
+}
+
+void QmlBoard::wheelEvent(QWheelEvent *event) {
+    viewZoom += event->delta() > 0 ? 1 : -1;
+    if (viewZoom < 1) viewZoom = 1;
+    std::cout << viewZoom << std::endl;
+    update();
 }

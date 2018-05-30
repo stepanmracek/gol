@@ -11,18 +11,16 @@ public:
     BoundedBoard(int width, int height, std::set<int> stay, std::set<int> born);
     virtual ~BoundedBoard();
 
-    void random();
     void step();
 
     int getValue(int x, int y) const;
     void setValue(int x, int y, int value);
-    int getWidth() const;
-    int getHeight() const;
+    Cells getCellsInArea(int x, int y, int width, int height) const;
 
 private:
     typedef std::vector<int> Field;
 
-    void checkBounds(int x, int y) const;
+    bool checkBounds(int x, int y) const;
     int getUnsafe(Field *field, int x, int y) const;
     void setUnsafe(Field *field, int x, int y, int value);
 

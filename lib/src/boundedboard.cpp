@@ -19,17 +19,12 @@ BoundedBoard::~BoundedBoard() {
 
 }
 
-void BoundedBoard::checkBounds(int x, int y) const {
-    if (x < 0 || x >= width || y < 0 || y >= height) {
-        std::stringstream ss;
-        ss << "Out of bounds: " << "[" << x << ";" << y << "]";
-        throw std::runtime_error(ss.str());
-    }
+bool BoundedBoard::checkBounds(int x, int y) const {
+    return x >= 0 && x < width && y >= 0 && y < height;
 }
 
 int BoundedBoard::getValue(int x, int y) const {
-    checkBounds(x, y);
-    return getUnsafe(current, x, y);
+    return checkBounds(x, y) ? getUnsafe(current, x, y) : 0;
 }
 
 int BoundedBoard::getUnsafe(Field *field, int x, int y) const {
@@ -37,27 +32,22 @@ int BoundedBoard::getUnsafe(Field *field, int x, int y) const {
 }
 
 void BoundedBoard::setValue(int x, int y, int value) {
-    checkBounds(x, y);
-    setUnsafe(current, x, y, value);
+    if (checkBounds(x, y))
+        setUnsafe(current, x, y, value);
 }
 
 void BoundedBoard::setUnsafe(Field *field, int x, int y, int value) {
     field->at(width * y + x) = value;
 }
 
-void BoundedBoard::random() {
-    int x = (std::rand() % (width - 2)) + 1;
-    int y = (std::rand() % (height - 2)) + 1;
-    int value = getUnsafe(current, x, y);
-    setUnsafe(current, x, y, !value);
-}
-
-int BoundedBoard::getWidth() const {
-    return width;
-}
-
-int BoundedBoard::getHeight() const {
-    return height;
+BoundedBoard::Cells BoundedBoard::getCellsInArea(int x, int y, int width, int height) const {
+    Cells result;
+    for (int _y = y; _y < y + height; _y++) {
+        for (int _x = x; _x < x + width; _x++) {
+            if (getValue(_x, _y)) result.insert(Cell(_x, _y));
+        }
+    }
+    return result;
 }
 
 void BoundedBoard::step() {
