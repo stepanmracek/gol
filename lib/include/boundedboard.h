@@ -20,7 +20,6 @@ public:
 private:
     typedef std::vector<int> Field;
 
-    bool checkBounds(int x, int y) const;
     int getUnsafe(Field *field, int x, int y) const;
     void setUnsafe(Field *field, int x, int y, int value);
 
